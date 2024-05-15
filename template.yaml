@@ -1,79 +1,32 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-    BikeShareApp
+  HelloWorldApp
 
-    BikeShare SAM Template for complete serverless application including Lambda functions and DynamoDB tables
+  Sample SAM Template for HelloWorldApp
 
 Globals:
-    Function:
-        Timeout: 3
+  Function:
+    Timeout: 3
 
 Resources:
-
-    # DynamoDB Tables
-    BikeLocations: 
-       Type: AWS::DynamoDB::Table
-       Properties: 
-        AttributeDefinitions: 
-          - AttributeName: "LocationId"
-            AttributeType: "S"
-          - AttributeName: "BikeId"
-            AttributeType: "S"
-          - AttributeName: "Status"
-            AttributeType: "N"
-        KeySchema: 
-          - AttributeName: "LocationId"
-            KeyType: "HASH"
-          - AttributeName: "BikeId"
-            KeyType: "RANGE"
-        ProvisionedThroughput: 
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
-        TableName: "bikelocations"
-        GlobalSecondaryIndexes: 
-          - IndexName: "LocationAvailbility"
-            KeySchema: 
-              - AttributeName: "LocationId"
-                KeyType: "HASH"
-              - AttributeName: "Status"
-                KeyType: "RANGE"
-            Projection: 
-              ProjectionType: "ALL"
-            ProvisionedThroughput: 
-              ReadCapacityUnits: 1
-              WriteCapacityUnits: 1
-
-    # Lambda Functions
-    getBike:
-        Type: AWS::Serverless::Function
-        Properties:
-            CodeUri: get_bike/
-            Handler: app1.gbikeHandler
-            Runtime: nodejs20.x
-            Policies:
-              - DynamoDBCrudPolicy:
-                    TableName: !Ref BikeLocations
-            Environment:
-                Variables:
-                    TABLE_NAME: !Ref BikeLocations
-            Events:
-                BookBike:
-                    Type: Api
-                    Properties:
-                        Path: /Bike/book
-                        Method: post
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: hello-world-sam/hello-world-function/
+      Handler: app.lambdaHandler
+      Runtime: nodejs14.x
+      Events:
+        HelloWorldApi:
+          Type: Api
+          Properties:
+            Path: /hello
+            Method: get
 
 Outputs:
-
-    getBikeApi:
-      Description: "API Gateway endpoint URL for Prod stage for getBike function"
-      Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/Bike/book"
-
-    getBike:
-      Description: "getBike Lambda Function ARN"
-      Value: !GetAtt getBike.Arn
-
-    BikeLocationsTable:
-      Description: "DynamoDB Table for Bike Locations"
-      Value: !Ref BikeLocations
+  HelloWorldApi:
+    Description: "API Gateway endpoint URL for Prod stage for HelloWorld function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello"
+  HelloWorldFunction:
+    Description: "HelloWorld Lambda Function ARN"
+    Value: !GetAtt HelloWorldFunction.Arn
