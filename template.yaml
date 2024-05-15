@@ -3,65 +3,77 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
     BikeShareApp
 
-    BikeShare SAM Template for complete serverless
-    
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+    BikeShare SAM Template for complete serverless application including Lambda functions and DynamoDB tables
+
 Globals:
     Function:
         Timeout: 3
 
-
 Resources:
 
+    # DynamoDB Tables
+    BikeLocations: 
+       Type: AWS::DynamoDB::Table
+       Properties: 
+        AttributeDefinitions: 
+          - AttributeName: "LocationId"
+            AttributeType: "S"
+          - AttributeName: "BikeId"
+            AttributeType: "S"
+          - AttributeName: "Status"
+            AttributeType: "N"
+        KeySchema: 
+          - AttributeName: "LocationId"
+            KeyType: "HASH"
+          - AttributeName: "BikeId"
+            KeyType: "RANGE"
+        ProvisionedThroughput: 
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: "bikelocations"
+        GlobalSecondaryIndexes: 
+          - IndexName: "LocationAvailbility"
+            KeySchema: 
+              - AttributeName: "LocationId"
+                KeyType: "HASH"
+              - AttributeName: "Status"
+                KeyType: "RANGE"
+            Projection: 
+              ProjectionType: "ALL"
+            ProvisionedThroughput: 
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+
+    # Lambda Functions
     getBike:
-        Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+        Type: AWS::Serverless::Function
         Properties:
             CodeUri: get_bike/
             Handler: app1.gbikeHandler
             Runtime: nodejs20.x
-            Timeout: 240
-            Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
+            Policies:
+              - DynamoDBCrudPolicy:
+                    TableName: !Ref BikeLocations
+            Environment:
                 Variables:
-                    PARAM1: VALUE
+                    TABLE_NAME: !Ref BikeLocations
             Events:
                 BookBike:
-                    Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+                    Type: Api
                     Properties:
                         Path: /Bike/book
                         Method: post
 
-    returnBike:
-        Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-        Properties:
-            CodeUri: return_bike/
-            Handler: app2.rbikeHandler
-            Runtime: nodejs20.x
-            Timeout: 240
-            Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
-                Variables:
-                    PARAM1: VALUE
-            Events:
-                ReturnBike:
-                    Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
-                    Properties:
-                        Path: /Bike/return
-                        Method: post
-
-
 Outputs:
 
     getBikeApi:
-      Description: "API Gateway endpoint URL for Prod stage for  getBike function"
+      Description: "API Gateway endpoint URL for Prod stage for getBike function"
       Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/Bike/book"
 
     getBike:
       Description: "getBike Lambda Function ARN"
       Value: !GetAtt getBike.Arn
 
-    returnBikeApi:
-      Description: "API Gateway endpoint URL for Prod stage for  returnBike function"
-      Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/Bike/return"
-
-    returnBike:
-      Description: "returnBike Lambda Function ARN"
-      Value: !GetAtt returnBike.Arn
+    BikeLocationsTable:
+      Description: "DynamoDB Table for Bike Locations"
+      Value: !Ref BikeLocations
