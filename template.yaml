@@ -19,7 +19,6 @@ Resources:
             CodeUri: get_bike/
             Handler: app1.gbikeHandler
             Runtime: nodejs20.x
-            Role: <role-arn>
             Timeout: 240
             Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
                 Variables:
@@ -37,7 +36,6 @@ Resources:
             CodeUri: return_bike/
             Handler: app2.rbikeHandler
             Runtime: nodejs20.x
-            Role: <role-arn>
             Timeout: 240
             Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
                 Variables:
